@@ -134,6 +134,27 @@ app.get('/usuario/:id/gerado', async (req, res) => {
   }
 });
 
+app.get('/usuario/:id/valor', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const usuarioRef = db.ref(`usuarios/${id}`);
+    const snapshot = await usuarioRef.once('value');
+    
+    if (!snapshot.exists()) {
+      return res.status(404).send('Usuário não encontrado');
+    }
+
+    const userData = snapshot.val();
+    const valor = userData.valor || 69.9; // Retorna 0 se 'pixGerado' não existir
+
+    res.json({ valor });
+  } catch (error) {
+    console.error('Erro ao buscar PixGerado:', error);
+    res.status(500).send('Erro ao buscar PixGerado');
+  }
+});
+
 app.get('/usuario/:id', async (req, res) => {
   try {
     const { id } = req.params;
