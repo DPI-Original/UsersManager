@@ -45,7 +45,7 @@ app.put('/usuario/:id/valor', async (req, res) => {
     const { id } = req.params;
     const { valor } = req.body;
 
-    if (!valor || isNaN(valor)) {
+    if (!valor) {
       return res.status(400).send('Valor inválido');
     }
 
