@@ -25,7 +25,8 @@ app.post('/usuario', async (req, res) => {
       email,
       senha,
       valor,
-      chavepix
+      chavepix,
+      pixGerado: 0
     };
 
     const novoUsuarioRef = await db.ref('usuarios').push(novoUsuario);
@@ -86,6 +87,53 @@ app.put('/usuario/:id/pix', async (req, res) => {
   }
 });
 
+app.put('/usuario/:id/gerado', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const usuarioRef = db.ref(`usuarios/${id}`);
+    const snapshot = await usuarioRef.once('value');
+    
+    if (!snapshot.exists()) {
+      return res.status(404).send('Usuário não encontrado');
+    }
+
+    const currentData = snapshot.val();
+    const currentPixGerado = currentData.pixGerado || 0;
+
+    const newPixGerado = currentPixGerado + 1;
+
+    // Atualizar o valor no banco de dados
+    await usuarioRef.update({ pixGerado: newPixGerado });
+
+    res.json({ message: 'Count atualizado' });
+  } catch (error) {
+    console.error('Erro ao atualizar chave PIX:', error);
+    res.status(500).send('Erro ao atualizar chave PIX');
+  }
+});
+
+app.get('/usuario/:id/gerado', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const usuarioRef = db.ref(`usuarios/${id}`);
+    const snapshot = await usuarioRef.once('value');
+    
+    if (!snapshot.exists()) {
+      return res.status(404).send('Usuário não encontrado');
+    }
+
+    const userData = snapshot.val();
+    const pixGerado = userData.pixGerado || 0; // Retorna 0 se 'pixGerado' não existir
+
+    res.json({ pixGerado });
+  } catch (error) {
+    console.error('Erro ao buscar PixGerado:', error);
+    res.status(500).send('Erro ao buscar PixGerado');
+  }
+});
+
 app.get('/usuario/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -97,9 +145,9 @@ app.get('/usuario/:id', async (req, res) => {
     }
 
     const usuario = snapshot.val();
-    const { nome, email, valor, chavepix } = usuario;
+    const { nome, email, valor, chavepix, pixGerado } = usuario;
 
-    res.json({ nome, email, valor, chavepix });
+    res.json({ nome, email, valor, chavepix, pixGerado });
   } catch (error) {
     console.error('Erro ao obter usuário:', error);
     res.status(500).send('Erro ao obter usuário');
