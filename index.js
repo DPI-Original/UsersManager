@@ -1,6 +1,7 @@
 const express = require('express');
 const admin = require('firebase-admin');
 const app = express();
+const cors = require('cors');
 
 const serviceAccount = JSON.parse(process.env.FIRE_CONNECT);
 admin.initializeApp({
@@ -9,7 +10,7 @@ admin.initializeApp({
 });
 
 const db = admin.database();
-
+app.use(cors({ origin: true }));
 app.use(express.json());
 
 app.get('/', (req, res) => {
