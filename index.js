@@ -85,6 +85,59 @@ app.put('/usuario/:id/pix', async (req, res) => {
   }
 });
 
+app.get('/usuario/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const usuarioRef = db.ref(`usuarios/${id}`);
+    const snapshot = await usuarioRef.once('value');
+
+    if (!snapshot.exists()) {
+      return res.status(404).send('Usuário não encontrado');
+    }
+
+    const usuario = snapshot.val();
+    const { nome, email, valor, chavepix } = usuario;
+
+    res.json({ nome, email, valor, chavepix });
+  } catch (error) {
+    console.error('Erro ao obter usuário:', error);
+    res.status(500).send('Erro ao obter usuário');
+  }
+});
+
+app.post('/login', async (req, res) => {
+  try {
+    const { email, senha } = req.body;
+
+    if (!email || !senha) {
+      return res.status(400).send('Email e senha são obrigatórios');
+    }
+
+    const usuariosRef = db.ref('usuarios');
+    const snapshot = await usuariosRef.orderByChild('email').equalTo(email).once('value');
+
+    if (!snapshot.exists()) {
+      return res.status(404).send('Usuário não encontrado');
+    }
+
+    const usuarios = snapshot.val();
+    const usuarioId = Object.keys(usuarios)[0];
+    const usuario = usuarios[usuarioId];
+
+    if (usuario.senha !== senha) {
+      return res.status(401).send('Senha incorreta');
+    }
+
+    res.json({
+      message: 'Login bem-sucedido',
+      userId: usuarioId
+    });
+  } catch (error) {
+    console.error('Erro ao fazer login:', error);
+    res.status(500).send('Erro ao fazer login');
+  }
+});
+
 const port = process.env.PORT || 3000;
 
 if (require.main === module) {
